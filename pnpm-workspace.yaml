@@ -2,3 +2,9 @@
 # below, which lets pnpm run esbuild's install script (needed by vite/tsdown).
 allowBuilds:
   esbuild: true
+
+# VitePress 1.x still depends on Vite 5, which has unpatched dev-server issues.
+# Its Vue plugin supports Vite 6; keep the override scoped to documentation.
+overrides:
+  'vitepress>vite': ^6.4.6
+  'vue': ^3.5.45

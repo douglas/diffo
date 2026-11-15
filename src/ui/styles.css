@@ -120,7 +120,7 @@
 }
 
 /*
- * Both themes get real values — designed, not inverted. The media query carries
+ * Palettes get real values — designed, not inverted. The media query carries
  * the system preference; the [data-theme] rules let an explicit toggle win in
  * *both* directions, which a media query alone cannot do.
  */
@@ -250,6 +250,52 @@
   --exp-hover-fg: #ffffff;
   --lift: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.14);
   --lift-lg: 0 24px 64px -20px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="catppuccin-mocha"] {
+  color-scheme: dark;
+  --paper: #1e1e2e;
+  --fill: #181825;
+  --fill-2: #313244;
+  --ink: #cdd6f4;
+  --ink-2: #bac2de;
+  --ink-3: #a6adc8;
+  --hair: #45475a;
+  --hair-2: #313244;
+  --acc: #b4befe;
+  --acc-fg: #1e1e2e;
+  --acc-wash: rgba(180, 190, 254, 0.14);
+  --acc-line: rgba(180, 190, 254, 0.5);
+  --brand: #a6e3a1;
+  --brand-solid: #a6e3a1;
+  --brand-fg: #1e1e2e;
+  --brand-wash: rgba(166, 227, 161, 0.14);
+  --brand-line: rgba(166, 227, 161, 0.5);
+  --attn: #f9e2af;
+  --attn-wash: rgba(249, 226, 175, 0.12);
+  --attn-line: rgba(249, 226, 175, 0.45);
+  --here: #94e2d5;
+  --here-line: rgba(148, 226, 213, 0.45);
+  --add: #a6e3a1;
+  --add-tint: rgba(166, 227, 161, 0.075);
+  --add-row: rgba(166, 227, 161, 0.13);
+  --add-word: rgba(166, 227, 161, 0.28);
+  --del: #f38ba8;
+  --del-tint: rgba(243, 139, 168, 0.07);
+  --del-row: rgba(243, 139, 168, 0.12);
+  --del-word: rgba(243, 139, 168, 0.26);
+  --danger: #f38ba8;
+  --danger-wash: rgba(243, 139, 168, 0.12);
+  --dir-ico: #89b4fa;
+  --exp-wash: rgba(137, 180, 250, 0.16);
+  --exp-ink: #89b4fa;
+  --exp-hover: #89b4fa;
+  --exp-hover-fg: #1e1e2e;
+  --gh: #89b4fa;
+  --gh-wash: rgba(137, 180, 250, 0.16);
+  --gh-line: rgba(137, 180, 250, 0.45);
+  --lift: 0 1px 2px rgba(17, 17, 27, 0.5), 0 12px 32px -16px rgba(17, 17, 27, 0.8);
+  --lift-lg: 0 24px 64px -20px rgba(17, 17, 27, 0.85);
 }
 
 * {

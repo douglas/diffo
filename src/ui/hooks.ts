@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react'
+import type { ResolvedTheme } from '../shared/theme.js'
+import { resolveTheme } from './theme.js'
 
-/** Is the page dark *right now*? An explicit `data-theme` on <html> wins; otherwise
+/** Which palette is active right now? An explicit `data-theme` on <html> wins; otherwise
  * the OS decides. Syntax tokens are inline styles, outside the CSS variables' reach,
  * so this hook has to answer the same question the stylesheet does. */
-const isDark = () => {
-  const explicit = document.documentElement.getAttribute('data-theme')
-  if (explicit === 'dark') return true
-  if (explicit === 'light') return false
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
-}
-
-export function useDarkMode(): boolean {
-  const [dark, setDark] = useState(() => typeof window !== 'undefined' && isDark())
+export function useResolvedTheme(): ResolvedTheme {
+  const [theme, setTheme] = useState<ResolvedTheme>(() =>
+    typeof window !== 'undefined' ? resolveTheme() : 'light',
+  )
   useEffect(() => {
-    const update = () => setDark(isDark())
+    const update = () => setTheme(resolveTheme())
     const media = window.matchMedia?.('(prefers-color-scheme: dark)')
     media?.addEventListener('change', update)
     // The theme menu writes data-theme on <html>; there's no event for an attribute.
@@ -24,7 +21,7 @@ export function useDarkMode(): boolean {
       observer.disconnect()
     }
   }, [])
-  return dark
+  return theme
 }
 
 export function fileAnchor(path: string): string {

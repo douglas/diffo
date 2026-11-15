@@ -86,15 +86,18 @@ describe('ui settings', () => {
     expect((await put(app, '{"theme":"dark"}')).status).toBe(503)
   })
 
-  it('round-trips the shared theme', async () => {
-    const { app, kv } = withStore()
-    expect((await put(app, '{"theme":"dark"}')).status).toBe(200)
-    expect(kv.get('theme')).toBe('dark')
-    const res = await app.request('/api/settings')
-    expect(await res.json()).toEqual({ theme: 'dark', critter: null, voice: null })
-  })
+  it.each(['system', 'light', 'dark', 'catppuccin-mocha'])(
+    'round-trips the shared %s theme',
+    async (theme) => {
+      const { app, kv } = withStore()
+      expect((await put(app, JSON.stringify({ theme }))).status).toBe(200)
+      expect(kv.get('theme')).toBe(theme)
+      const res = await app.request('/api/settings')
+      expect(await res.json()).toEqual({ theme, critter: null, voice: null })
+    },
+  )
 
-  it('rejects a theme outside the three real values', async () => {
+  it('rejects an unknown theme', async () => {
     const { app, kv } = withStore()
     expect((await put(app, '{"theme":"neon"}')).status).toBe(400)
     expect((await put(app, 'not json')).status).toBe(400)

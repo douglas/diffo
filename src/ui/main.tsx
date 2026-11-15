@@ -5,7 +5,7 @@ import { TooltipLayer } from './components/Tooltip.js'
 import { applyTheme, loadTheme } from './theme.js'
 import './styles.css'
 
-// Before the first render, or a stored light/dark choice flashes the system palette
+// Before the first render, or a stored theme flashes the system palette
 // for a frame on every load.
 applyTheme(loadTheme())
 

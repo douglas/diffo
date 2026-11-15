@@ -111,7 +111,7 @@ describe('Header', () => {
   })
 
   describe('the ⋯ is settings, not actions', () => {
-    it('offers the theme trio, current choice marked', () => {
+    it('offers the themes, current choice marked', () => {
       const onSetTheme = vi.fn()
       render(<Header changeset={changeset()} settings={{ theme: 'system', onSetTheme }} />)
       fireEvent.click(screen.getByLabelText('Settings'))
@@ -122,6 +122,20 @@ describe('Header', () => {
       expect(screen.getByText('Dark').closest('button')!.getAttribute('aria-checked')).toBe('false')
       fireEvent.click(screen.getByText('Dark'))
       expect(onSetTheme).toHaveBeenCalledWith('dark')
+    })
+
+    it('marks and selects Catppuccin Mocha', () => {
+      const onSetTheme = vi.fn()
+      render(
+        <Header changeset={changeset()} settings={{ theme: 'catppuccin-mocha', onSetTheme }} />,
+      )
+      fireEvent.click(screen.getByLabelText('Settings'))
+      const mocha = screen.getByText('Catppuccin Mocha').closest('button')!
+      expect(mocha.getAttribute('aria-checked')).toBe('true')
+      expect(screen.getByText('Dark').closest('button')!.getAttribute('aria-checked')).toBe('false')
+      fireEvent.click(mocha)
+      expect(onSetTheme).toHaveBeenCalledWith('catppuccin-mocha')
+      expect(screen.queryByText('Catppuccin Mocha')).toBeNull()
     })
 
     it('holds appearance and help, and nothing that acts on the review', () => {
@@ -135,7 +149,7 @@ describe('Header', () => {
       expect(screen.queryByText(/Clear threads/)).toBeNull()
       expect(container.querySelector('.menu-item-danger')).toBeNull()
       const items = [...container.querySelectorAll('.menu-item-label')].map((b) => b.textContent)
-      expect(items).toEqual(['System', 'Light', 'Dark', 'Shortcuts'])
+      expect(items).toEqual(['System', 'Light', 'Dark', 'Catppuccin Mocha', 'Shortcuts'])
     })
 
     it('switches the companion, its state marked', () => {

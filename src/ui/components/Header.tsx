@@ -10,7 +10,7 @@ import type { Changeset, PrInfo } from '../../shared/types.js'
 import type { Presence, PresenceReason } from '../api.js'
 import { isDevServer } from '../devMode.js'
 import { shortAgo } from '../markdown.js'
-import type { Theme } from '../theme.js'
+import { THEME_LABELS, THEMES, type Theme } from '../theme.js'
 import { type CritterEyes, CritterFace, CritterTrack } from './Critter.js'
 import { Icon } from './Icon.js'
 import { LivingMark } from './LivingMark.js'
@@ -634,36 +634,19 @@ export function Header({
             {onSetTheme && (
               <>
                 <MenuLabel>Theme</MenuLabel>
-                <MenuItem
-                  icon="display"
-                  checked={theme === 'system'}
-                  onClick={() => {
-                    close()
-                    onSetTheme('system')
-                  }}
-                >
-                  System
-                </MenuItem>
-                <MenuItem
-                  icon="sun"
-                  checked={theme === 'light'}
-                  onClick={() => {
-                    close()
-                    onSetTheme('light')
-                  }}
-                >
-                  Light
-                </MenuItem>
-                <MenuItem
-                  icon="moon"
-                  checked={theme === 'dark'}
-                  onClick={() => {
-                    close()
-                    onSetTheme('dark')
-                  }}
-                >
-                  Dark
-                </MenuItem>
+                {THEMES.map((choice) => (
+                  <MenuItem
+                    key={choice}
+                    icon={choice === 'system' ? 'display' : choice === 'light' ? 'sun' : 'moon'}
+                    checked={theme === choice}
+                    onClick={() => {
+                      close()
+                      onSetTheme(choice)
+                    }}
+                  >
+                    {THEME_LABELS[choice]}
+                  </MenuItem>
+                ))}
               </>
             )}
             {onSetCritter && (

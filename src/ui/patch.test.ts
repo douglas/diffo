@@ -86,7 +86,7 @@ describe('patchRuns', () => {
 describe('tokenizeLines on a patch', () => {
   it('highlights the code past each marker in the target language', async () => {
     const lines = ['--- a/a.ts', '+++ b/a.ts', '@@ -1 +1 @@', '-const x = 1', '+const x = 2']
-    const tokens = await tokenizeLines(lines, 'fix.patch', false)
+    const tokens = await tokenizeLines(lines, 'fix.patch', 'light')
     expect(tokens).not.toBeNull()
     for (const [i, line] of lines.entries()) {
       expect(tokens![i]!.map((t) => t.content).join('')).toBe(line)
@@ -101,7 +101,7 @@ describe('tokenizeLines on a patch', () => {
   })
 
   it('falls back to the diff grammar when no target is known', async () => {
-    const tokens = await tokenizeLines(['+anything', '-else'], 'notes.patch', false)
+    const tokens = await tokenizeLines(['+anything', '-else'], 'notes.patch', 'light')
     expect(tokens).toHaveLength(2)
     expect(tokens![0]!.map((t) => t.content).join('')).toBe('+anything')
   })

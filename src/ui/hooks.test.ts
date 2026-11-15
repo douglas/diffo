@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { glideTo, useDarkMode } from './hooks.js'
+import { glideTo, useResolvedTheme } from './hooks.js'
 
 function stubMatchMedia(matches: boolean) {
   vi.stubGlobal(
@@ -19,33 +19,51 @@ afterEach(() => {
   document.documentElement.removeAttribute('data-theme')
 })
 
-describe('useDarkMode', () => {
+describe('useResolvedTheme', () => {
   it('follows the OS when no explicit theme is set', () => {
     stubMatchMedia(true)
-    const { result } = renderHook(() => useDarkMode())
-    expect(result.current).toBe(true)
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('dark')
   })
 
   it('an explicit light theme beats a dark OS — the token-on-paper bug', () => {
     stubMatchMedia(true)
     document.documentElement.setAttribute('data-theme', 'light')
-    const { result } = renderHook(() => useDarkMode())
-    expect(result.current).toBe(false)
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('light')
   })
 
   it('an explicit dark theme beats a light OS', () => {
     stubMatchMedia(false)
     document.documentElement.setAttribute('data-theme', 'dark')
-    const { result } = renderHook(() => useDarkMode())
-    expect(result.current).toBe(true)
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('dark')
   })
 
   it('reacts live when the theme menu writes the attribute', async () => {
     stubMatchMedia(true)
-    const { result } = renderHook(() => useDarkMode())
-    expect(result.current).toBe(true)
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('dark')
     document.documentElement.setAttribute('data-theme', 'light')
-    await waitFor(() => expect(result.current).toBe(false))
+    await waitFor(() => expect(result.current).toBe('light'))
+  })
+
+  it.each([false, true])('keeps Mocha explicit when the OS dark preference is %s', (dark) => {
+    stubMatchMedia(dark)
+    document.documentElement.setAttribute('data-theme', 'catppuccin-mocha')
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('catppuccin-mocha')
+  })
+
+  it('updates syntax colors when switching between two dark palettes', async () => {
+    stubMatchMedia(false)
+    document.documentElement.setAttribute('data-theme', 'dark')
+    const { result } = renderHook(() => useResolvedTheme())
+    expect(result.current).toBe('dark')
+    document.documentElement.setAttribute('data-theme', 'catppuccin-mocha')
+    await waitFor(() => expect(result.current).toBe('catppuccin-mocha'))
+    document.documentElement.removeAttribute('data-theme')
+    await waitFor(() => expect(result.current).toBe('light'))
   })
 })
 

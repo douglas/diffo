@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import { isTheme, type ResolvedTheme, type Theme } from '../shared/theme.js'
+
+export { THEMES, type Theme } from '../shared/theme.js'
 
 /**
- * Theme choice. Both palettes live in styles.css: light is the sheet's default, dark
+ * Theme choice. Palettes live in styles.css: light is the sheet's default, dark
  * arrives via `prefers-color-scheme`, and `[data-theme]` rules exist so an explicit
  * choice can win in *both* directions. This module is the setter.
  *
@@ -16,19 +19,25 @@ import { useCallback, useEffect, useState } from 'react'
  * the server's answer wins over the local cache; a set writes through to both.
  */
 
-export type Theme = 'system' | 'light' | 'dark'
-
-export const THEMES: readonly Theme[] = ['system', 'light', 'dark']
+export const THEME_LABELS: Record<Theme, string> = {
+  system: 'System',
+  light: 'Light',
+  dark: 'Dark',
+  'catppuccin-mocha': 'Catppuccin Mocha',
+}
 
 const KEY = 'diffo:ui:theme'
 
-function asTheme(raw: unknown): Theme | null {
-  return raw === 'system' || raw === 'light' || raw === 'dark' ? raw : null
-}
-
 export function loadTheme(): Theme {
   const raw = localStorage.getItem(KEY)
-  return raw === 'light' || raw === 'dark' ? raw : 'system'
+  return isTheme(raw) ? raw : 'system'
+}
+
+/** Inline syntax colors and stock diagrams must resolve the same palette as CSS. */
+export function resolveTheme(): ResolvedTheme {
+  const explicit = document.documentElement.getAttribute('data-theme')
+  if (isTheme(explicit) && explicit !== 'system') return explicit
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 function storeTheme(theme: Theme) {
@@ -48,7 +57,7 @@ export async function fetchSharedTheme(): Promise<Theme | null> {
     const res = await fetch('/api/settings')
     if (!res.ok) return null
     const body = (await res.json()) as { theme?: unknown }
-    return asTheme(body?.theme)
+    return isTheme(body?.theme) ? body.theme : null
   } catch {
     return null
   }

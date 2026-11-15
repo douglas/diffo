@@ -1,4 +1,5 @@
 import type { HighlighterCore, ThemedToken } from 'shiki/core'
+import type { ResolvedTheme } from '../shared/theme.js'
 import { patchRuns, targetFromPatchName } from './patch.js'
 
 const LANG_BY_EXT: Record<string, string> = {
@@ -117,7 +118,11 @@ async function getHighlighter(): Promise<HighlighterCore> {
         import('shiki/engine/oniguruma'),
       ])
       return createHighlighterCore({
-        themes: [import('shiki/themes/github-light.mjs'), import('shiki/themes/github-dark.mjs')],
+        themes: [
+          import('shiki/themes/github-light.mjs'),
+          import('shiki/themes/github-dark.mjs'),
+          import('shiki/themes/catppuccin-mocha.mjs'),
+        ],
         langs: [],
         engine: createOnigurumaEngine(import('shiki/wasm')),
       })
@@ -146,7 +151,7 @@ export type LineTokens = ThemedToken[]
 export async function tokenizeLines(
   lines: string[],
   path: string,
-  dark: boolean,
+  theme: ResolvedTheme,
 ): Promise<LineTokens[] | null> {
   const lang = langForPath(path)
   if (!lang || lines.length === 0) return null
@@ -154,8 +159,8 @@ export async function tokenizeLines(
     const highlighter = await getHighlighter()
     await loadLang(highlighter, lang)
     if (!highlighter.getLoadedLanguages().includes(lang)) return null
-    if (lang === 'diff') return await tokenizePatch(highlighter, lines, path, dark)
-    return tokenize(highlighter, lines, lang, dark)
+    if (lang === 'diff') return await tokenizePatch(highlighter, lines, path, theme)
+    return tokenize(highlighter, lines, lang, theme)
   } catch {
     return null
   }
@@ -165,11 +170,11 @@ function tokenize(
   highlighter: HighlighterCore,
   lines: string[],
   lang: string,
-  dark: boolean,
+  theme: ResolvedTheme,
 ): LineTokens[] {
   return highlighter.codeToTokensBase(lines.join('\n'), {
     lang: lang as never,
-    theme: dark ? 'github-dark' : 'github-light',
+    theme: theme === 'catppuccin-mocha' ? theme : `github-${theme}`,
     // Scope names ride along so the hover layer can tell a name from a comment,
     // a string or a keyword without parsing anything itself.
     includeExplanation: 'scopeName',
@@ -209,9 +214,9 @@ async function tokenizePatch(
   highlighter: HighlighterCore,
   lines: string[],
   path: string,
-  dark: boolean,
+  theme: ResolvedTheme,
 ): Promise<LineTokens[]> {
-  const asDiff = tokenize(highlighter, lines, 'diff', dark)
+  const asDiff = tokenize(highlighter, lines, 'diff', theme)
   const target = targetFromPatchName(path)
   const runs = patchRuns(lines, target ? codeLangForPath(target) : null, codeLangForPath)
   await Promise.all([...new Set(runs.map((r) => r.lang))].map((l) => loadLang(highlighter, l)))
@@ -225,7 +230,7 @@ async function tokenizePatch(
         highlighter,
         side.map((i) => lines[i]!.slice(1)),
         run.lang,
-        dark,
+        theme,
       )
       for (const [k, i] of side.entries())
         result[i] = withMarker(lines[i]!, code[k] ?? [], asDiff[i])

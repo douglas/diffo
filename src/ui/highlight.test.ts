@@ -1,6 +1,6 @@
 import type { ThemedToken } from 'shiki/core'
 import { describe, expect, it } from 'vitest'
-import { langForPath, symbolRuns } from './highlight.js'
+import { langForPath, symbolRuns, tokenizeLines } from './highlight.js'
 
 function token(parts: [string, string][]): ThemedToken {
   return {
@@ -12,6 +12,23 @@ function token(parts: [string, string][]): ThemedToken {
     })),
   }
 }
+
+describe('Catppuccin Mocha highlighting', () => {
+  it.each([
+    ['example.ts', 'const answer = 42'],
+    ['example.ts.patch', '+const answer = 42'],
+  ])('uses Mocha token colors in %s', async (path, source) => {
+    const tokens = await tokenizeLines([source], path, 'catppuccin-mocha')
+    expect(tokens).not.toBeNull()
+    expect(tokens![0]!.map((token) => token.content).join('')).toBe(source)
+    expect(tokens![0]!.find((token) => token.content === 'const')?.color?.toLowerCase()).toBe(
+      '#cba6f7',
+    )
+    expect(tokens![0]!.find((token) => token.content === '42')?.color?.toLowerCase()).toBe(
+      '#fab387',
+    )
+  })
+})
 
 describe('symbolRuns', () => {
   it('cuts a merged token so the name is kept and its punctuation is not', () => {

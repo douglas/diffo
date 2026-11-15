@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify'
 import { layerLinkHref, REF, resolveRef } from './layers.js'
+import { resolveTheme } from './theme.js'
 
 /**
  * Diagrams in comments. The agent writes a ```mermaid fence like any other
@@ -72,10 +73,7 @@ async function loadBeautiful(): Promise<BeautifulApi> {
 }
 
 function wantedTheme(): 'dark' | 'neutral' {
-  const forced = document.documentElement.getAttribute('data-theme')
-  if (forced === 'dark') return 'dark'
-  if (forced === 'light') return 'neutral'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'neutral'
+  return resolveTheme() === 'light' ? 'neutral' : 'dark'
 }
 
 async function loadMermaid(): Promise<MermaidApi> {

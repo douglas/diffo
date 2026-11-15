@@ -159,6 +159,23 @@ describe('renderMermaidIn', () => {
     await new Promise((r) => setTimeout(r, 20))
     expect(figure.innerHTML).toBe(before)
   })
+
+  it('uses dark fallback diagrams in Mocha even on a light OS', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: false })),
+    )
+    try {
+      document.documentElement.setAttribute('data-theme', 'light')
+      await renderMermaidIn(fence('pie parses\n  "a": 1'))
+      fallback.initialize.mockClear()
+      document.documentElement.setAttribute('data-theme', 'catppuccin-mocha')
+      await renderMermaidIn(fence('pie parses\n  "a": 1'))
+      expect(fallback.initialize).toHaveBeenCalledWith(expect.objectContaining({ theme: 'dark' }))
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
   it('inks a painted node against its fill, not the theme — a pastel box stays readable in dark mode', async () => {
     const root = fence(
       [

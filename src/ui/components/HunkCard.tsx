@@ -5,7 +5,7 @@ import { anchorSpan, type ThreadIntent } from '../../shared/review.js'
 import type { DiffLine, Hunk } from '../../shared/types.js'
 import { EXPAND_STEP } from '../gaps.js'
 import { type LineTokens, symbolRuns, tokenizeLines } from '../highlight.js'
-import { useDarkMode } from '../hooks.js'
+import { useResolvedTheme } from '../hooks.js'
 import { intralineRanges, type Range, splitByRanges } from '../intraline.js'
 import { anchorForRange, rangedRows, rangeStartRows, threadsByLine } from '../reviewPlacement.js'
 import { toSplitRows } from '../splitRows.js'
@@ -149,7 +149,7 @@ export function GapBand({ gap }: { gap: GapControls }) {
 }
 
 function useLineTokens(lines: DiffLine[], path: string): (LineTokens | null)[] {
-  const dark = useDarkMode()
+  const theme = useResolvedTheme()
   const [tokens, setTokens] = useState<(LineTokens | null)[]>([])
 
   useEffect(() => {
@@ -160,12 +160,12 @@ function useLineTokens(lines: DiffLine[], path: string): (LineTokens | null)[] {
       tokenizeLines(
         oldLines.map((l) => l.text),
         path,
-        dark,
+        theme,
       ),
       tokenizeLines(
         newLines.map((l) => l.text),
         path,
-        dark,
+        theme,
       ),
     ])
       .then(([oldTokens, newTokens]) => {
@@ -187,7 +187,7 @@ function useLineTokens(lines: DiffLine[], path: string): (LineTokens | null)[] {
     return () => {
       cancelled = true
     }
-  }, [lines, path, dark])
+  }, [lines, path, theme])
 
   return tokens
 }

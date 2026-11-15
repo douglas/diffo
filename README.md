@@ -55,6 +55,10 @@ and off with `diffo telemetry off`.
 
 New here? [**Your first review, end to end**](https://diffohq.github.io/diffo/tutorial) takes about five minutes.
 
+Choose **Settings → Theme → Catppuccin Mocha** for a dark pastel palette,
+including syntax highlighting and diff colors. System, Light, and Dark are also
+available. Your choice is saved and shared across local reviews.
+
 ## Talk to the agent on the line
 
 **We write code with an LLM. We review it alone.**

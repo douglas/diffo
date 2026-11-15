@@ -34,9 +34,9 @@ describe('loadTheme', () => {
     expect(loadTheme()).toBe('system')
   })
 
-  it('round-trips an explicit choice', () => {
-    localStorage.setItem('diffo:ui:theme', 'dark')
-    expect(loadTheme()).toBe('dark')
+  it.each(['light', 'dark', 'catppuccin-mocha'])('restores the saved %s theme', (theme) => {
+    localStorage.setItem('diffo:ui:theme', theme)
+    expect(loadTheme()).toBe(theme)
   })
 
   it('treats junk in storage as system, not as a crash', () => {
@@ -71,6 +71,16 @@ describe('fetchSharedTheme', () => {
 })
 
 describe('useTheme', () => {
+  it('applies Mocha and saves it locally and across review ports', async () => {
+    const puts = stubSettingsApi()
+    const { result } = renderHook(() => useTheme())
+    act(() => result.current[1]('catppuccin-mocha'))
+    expect(result.current[0]).toBe('catppuccin-mocha')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('catppuccin-mocha')
+    expect(localStorage.getItem('diffo:ui:theme')).toBe('catppuccin-mocha')
+    await waitFor(() => expect(puts).toEqual([{ theme: 'catppuccin-mocha' }]))
+  })
+
   it('setting a theme applies it and persists it', () => {
     const { result } = renderHook(() => useTheme())
     act(() => result.current[1]('light'))
@@ -89,11 +99,11 @@ describe('useTheme', () => {
 
   it('adopts the server-shared choice over the local cache on mount', async () => {
     // Chosen on another repo's port — this origin has never seen it.
-    stubSettingsApi('dark')
+    stubSettingsApi('catppuccin-mocha')
     const { result } = renderHook(() => useTheme())
-    await waitFor(() => expect(result.current[0]).toBe('dark'))
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-    expect(localStorage.getItem('diffo:ui:theme')).toBe('dark')
+    await waitFor(() => expect(result.current[0]).toBe('catppuccin-mocha'))
+    expect(document.documentElement.getAttribute('data-theme')).toBe('catppuccin-mocha')
+    expect(localStorage.getItem('diffo:ui:theme')).toBe('catppuccin-mocha')
   })
 
   it('a set writes through to the server, so every other origin follows', async () => {

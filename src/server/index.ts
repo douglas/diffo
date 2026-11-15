@@ -35,6 +35,7 @@ import {
   undeliveredThreadIds,
   untouchedAgentVoice,
 } from '../shared/review.js'
+import { THEMES } from '../shared/theme.js'
 import type { ChangesetSpec, PrInfo } from '../shared/types.js'
 import { normalizeVoice, VOICE_MAX } from '../shared/voice.js'
 import { VERSION } from '../version.js'
@@ -246,7 +247,7 @@ export function createApp(
   // served from its own port, so a localStorage choice dies with the tab. The
   // shared DB holds the durable copy; localStorage stays only as the
   // before-first-paint cache.
-  const THEME_VALUES = new Set(['system', 'light', 'dark'])
+  const THEME_VALUES = new Set<string>(THEMES)
   // The header critter: on unless the reviewer switched it off.
   const CRITTER_VALUES = new Set(['on', 'off'])
   const stored = (key: string, values: Set<string>) => {
@@ -283,7 +284,7 @@ export function createApp(
     ) {
       return c.json(
         {
-          error: `need {theme?: "system" | "light" | "dark", critter?: "on" | "off", voice?: string (up to ${VOICE_MAX} characters, empty for the default)}, at least one`,
+          error: `need {theme?: ${THEMES.map((theme) => JSON.stringify(theme)).join(' | ')}, critter?: "on" | "off", voice?: string (up to ${VOICE_MAX} characters, empty for the default)}, at least one`,
         },
         400,
       )

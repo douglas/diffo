@@ -79,6 +79,12 @@ gain execution in the review UI:
 - File-serving endpoints resolve symlinks and re-check the real path, so a
   crafted repo can't read files outside its own tree.
 
+Diffo disables Git hooks for its Git commands and text converters for patch
+generation. Reviewing a change must not run those configured programs. Other
+Git configuration, including checkout filters, still comes from your machine:
+use a clone you created yourself, rather than a checkout supplied with an
+untrusted `.git` directory.
+
 ## What's stored, and where
 
 The diff itself is never stored; it's recomputed from git on demand. What
@@ -101,7 +107,8 @@ made: the git commands a local review runs (`diff`, `merge-base`, `show`,
 review writes, but only to things Diffo owns: `git fetch` stores the PR's head
 under `refs/diffo/pr/N` and refreshes the base's remote-tracking ref, then
 `git worktree add` creates the `diffo/pr-N` branch and the checkout under
-`~/.diffo/worktrees`. Moving that checkout to the fetched head (`git reset --hard`)
+`~/.diffo/worktrees`. If that branch already exists without the review checkout,
+Diffo refuses to replace it. Moving that checkout to the fetched head (`git reset --hard`)
 happens inside the worktree, and only when it is clean. The branch, the ref
 and the worktree are removed together: when the PR is merged or closed and you
 dismiss the offer to start fresh, when the review is pruned after 60 days

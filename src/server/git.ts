@@ -22,14 +22,18 @@ const SNIFF_BYTES = 8192
 const MAX_INLINE_BYTES = 2 * 1024 * 1024
 
 // Force plain unified diffs regardless of user git config (difftastic,
-// color.ui=always, external diff drivers), with rename detection.
-const DIFF_FLAGS = ['--no-ext-diff', '--no-color', '-M'] as const
+// color.ui=always, external diff drivers and text converters), with rename detection.
+const DIFF_FLAGS = ['--no-ext-diff', '--no-textconv', '--no-color', '-M'] as const
+
+// Review operations must not execute repository or user hooks. Apply this per
+// command so the user's Git configuration stays unchanged.
+const GIT_FLAGS = ['-c', 'core.hooksPath=/dev/null'] as const
 
 // `windowsHide` on every child: the daemon runs with no console (`detached` is
 // `DETACHED_PROCESS` on Windows), so each `git` would otherwise be handed a
 // brand-new cmd window that flashes open and shut. A no-op elsewhere.
 function git(root: string, args: string[]): string {
-  return execFileSync('git', args, {
+  return execFileSync('git', [...GIT_FLAGS, ...args], {
     cwd: root,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -49,7 +53,7 @@ const execFileAsync = promisify(execFile)
  * served, where blocking is free and an `await` in a constructor is not.
  */
 async function gitAsync(root: string, args: string[]): Promise<string> {
-  const { stdout } = await execFileAsync('git', args, {
+  const { stdout } = await execFileAsync('git', [...GIT_FLAGS, ...args], {
     cwd: root,
     encoding: 'utf-8',
     maxBuffer: MAX_BUFFER,
@@ -98,12 +102,16 @@ export function branchExists(root: string, branch: string): boolean {
  * over every repo it has ever reviewed. Same lean: true unless git said no. */
 export async function branchExistsAsync(root: string, branch: string): Promise<boolean> {
   try {
-    await execFileAsync('git', ['show-ref', '--verify', '--quiet', `refs/heads/${branch}`], {
-      cwd: root,
-      encoding: 'utf-8',
-      maxBuffer: MAX_BUFFER,
-      windowsHide: true,
-    })
+    await execFileAsync(
+      'git',
+      [...GIT_FLAGS, 'show-ref', '--verify', '--quiet', `refs/heads/${branch}`],
+      {
+        cwd: root,
+        encoding: 'utf-8',
+        maxBuffer: MAX_BUFFER,
+        windowsHide: true,
+      },
+    )
     return true
   } catch (err) {
     return (err as { code?: number | string }).code !== 1
@@ -535,7 +543,7 @@ export function getHeadFileBytes(root: string, relPath: string): Buffer | null {
 export function getBaseFileBytes(root: string, ref: string, relPath: string): Buffer | null {
   if (!isSafeRepoPath(root, relPath)) return null
   try {
-    return execFileSync('git', ['show', `${ref}:${relPath}`], {
+    return execFileSync('git', [...GIT_FLAGS, 'show', `${ref}:${relPath}`], {
       cwd: root,
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: MAX_BUFFER,
@@ -617,7 +625,7 @@ const FETCH_TIMEOUT_MS = 60_000
 const FETCH_ENV = { ...process.env, GIT_TERMINAL_PROMPT: '0' }
 
 function fetchSync(root: string, args: string[]): void {
-  execFileSync('git', ['fetch', '--quiet', ...args], {
+  execFileSync('git', [...GIT_FLAGS, 'fetch', '--quiet', ...args], {
     cwd: root,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -642,7 +650,7 @@ export async function fetchPrHeadAsync(
 ): Promise<void> {
   await execFileAsync(
     'git',
-    ['fetch', '--quiet', remote, `+refs/pull/${number}/head:${prHeadRef(number)}`],
+    [...GIT_FLAGS, 'fetch', '--quiet', remote, `+refs/pull/${number}/head:${prHeadRef(number)}`],
     {
       cwd: root,
       encoding: 'utf-8',
@@ -664,7 +672,7 @@ export async function fetchBranchAsync(
   branch: string,
   remote = 'origin',
 ): Promise<void> {
-  await execFileAsync('git', ['fetch', '--quiet', remote, branch], {
+  await execFileAsync('git', [...GIT_FLAGS, 'fetch', '--quiet', remote, branch], {
     cwd: root,
     encoding: 'utf-8',
     maxBuffer: MAX_BUFFER,
@@ -682,10 +690,10 @@ export function revParse(root: string, ref: string): string | null {
   }
 }
 
-/** `git worktree add -B <branch> <path> <ref>`: a fresh branch at the ref, or
- * the existing one reset there. */
+/** Create a fresh review branch. Refuse collisions so an existing branch's
+ * commits are never silently replaced. */
 export function worktreeAdd(root: string, path: string, branch: string, ref: string): void {
-  git(root, ['worktree', 'add', '--quiet', '-B', branch, path, ref])
+  git(root, ['worktree', 'add', '--quiet', '-b', branch, path, ref])
 }
 
 /** Remove a linked worktree. `force` discards uncommitted changes; without it a
